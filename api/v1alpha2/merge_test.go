@@ -2,6 +2,7 @@ package v1alpha2
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/kyma-project/istio/operator/internal/tests"
 	"github.com/onsi/ginkgo/v2/types"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -379,11 +380,11 @@ var _ = Describe("Merge", func() {
 		m := &meshv1alpha1.MeshConfig{
 			EnablePrometheusMerge: wrapperspb.Bool(false),
 		}
-		meshConfig := convert(m)
+		meshConfigRaw := convert(m)
 
 		iop := iopv1alpha1.IstioOperator{
-			Spec: &iopv1alpha1.IstioOperatorSpec{
-				MeshConfig: meshConfig,
+			Spec: iopv1alpha1.IstioOperatorSpec{
+				MeshConfig: meshConfigRaw,
 			},
 		}
 		istioCR := Istio{Spec: IstioSpec{Config: Config{EnablePrometheusMerge: true}}}
@@ -394,8 +395,12 @@ var _ = Describe("Merge", func() {
 		// then
 		Expect(err).ShouldNot(HaveOccurred())
 
-		enabledPrometheusMerge := out.Spec.MeshConfig.Fields["enablePrometheusMerge"].GetBoolValue()
+		meshConfig, err := values.MapFromObject(out.Spec.MeshConfig)
+		Expect(err).ShouldNot(HaveOccurred())
 
+		enabledPrometheusMerge, exists := meshConfig.GetPath("enablePrometheusMerge")
+		fmt.Println(enabledPrometheusMerge)
+		Expect(exists).To(BeTrue())
 		Expect(enabledPrometheusMerge).To(BeTrue())
 
 	})

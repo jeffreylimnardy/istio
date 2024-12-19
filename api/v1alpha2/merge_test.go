@@ -2,7 +2,6 @@ package v1alpha2
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/kyma-project/istio/operator/internal/tests"
 	"github.com/onsi/ginkgo/v2/types"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -399,7 +398,6 @@ var _ = Describe("Merge", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		enabledPrometheusMerge, exists := meshConfig.GetPath("enablePrometheusMerge")
-		fmt.Println(enabledPrometheusMerge)
 		Expect(exists).To(BeTrue())
 		Expect(enabledPrometheusMerge).To(BeTrue())
 

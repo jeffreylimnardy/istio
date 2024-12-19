@@ -2,6 +2,10 @@ package v1alpha2
 
 import (
 	"encoding/json"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/kyma-project/istio/operator/internal/tests"
 	"github.com/onsi/ginkgo/v2/types"
 	meshv1alpha1 "istio.io/api/mesh/v1alpha1"
@@ -12,14 +16,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"regexp"
-	"strings"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"istio.io/istio/pkg/util/protomarshal"
 )
 
@@ -348,6 +350,32 @@ var _ = Describe("Merge", func() {
 		numTrustedProxies := out.Spec.MeshConfig.Fields["defaultConfig"].
 			GetStructValue().Fields["gatewayTopology"].GetStructValue().Fields["numTrustedProxies"].GetNumberValue()
 		Expect(numTrustedProxies).To(Equal(float64(5)))
+	})
+
+	It("should set enablePrometheusMerge on IstioOperator to true when meshConfig has a enablePrometheusMerge with true", func() {
+		// given
+		m := &meshv1alpha1.MeshConfig{
+			EnablePrometheusMerge: wrapperspb.Bool(false),
+		}
+		meshConfig := convert(m)
+
+		iop := iopv1alpha1.IstioOperator{
+			Spec: &operatorv1alpha1.IstioOperatorSpec{
+				MeshConfig: meshConfig,
+			},
+		}
+		istioCR := Istio{Spec: IstioSpec{Config: Config{EnablePrometheusMerge: true}}}
+
+		// when
+		out, err := istioCR.MergeInto(iop)
+
+		// then
+		Expect(err).ShouldNot(HaveOccurred())
+
+		enabledPrometheusMerge := out.Spec.MeshConfig.Fields["enablePrometheusMerge"].GetBoolValue()
+
+		Expect(enabledPrometheusMerge).To(BeTrue())
+
 	})
 
 	It("should create IngressGateway overlay with externalTrafficPolicy set to Local", func() {

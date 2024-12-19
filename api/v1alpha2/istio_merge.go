@@ -2,6 +2,7 @@ package v1alpha2
 
 import (
 	"encoding/json"
+
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"istio.io/api/operator/v1alpha1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -87,6 +88,12 @@ func (m *meshConfigBuilder) BuildNumTrustedProxies(numTrustedProxiesPtr *int) *m
 	return m
 }
 
+func (m *meshConfigBuilder) BuildPrometheusMergeConfig(prometheusMerge bool) *meshConfigBuilder {
+	m.c.EnablePrometheusMerge = wrapperspb.Bool(prometheusMerge)
+
+	return m
+}
+
 func (m *meshConfigBuilder) AddProxyMetadata(key, value string) *meshConfigBuilder {
 
 	if m.c.DefaultConfig.ProxyMetadata == nil {
@@ -167,6 +174,7 @@ func (i *Istio) mergeConfig(op iopv1alpha1.IstioOperator) (iopv1alpha1.IstioOper
 	newMeshConfig := mcb.
 		BuildNumTrustedProxies(i.Spec.Config.NumTrustedProxies).
 		BuildExternalAuthorizerConfiguration(i.Spec.Config.Authorizers).
+		BuildPrometheusMergeConfig(i.Spec.Config.EnablePrometheusMerge).
 		Build()
 
 	if updatedConfig, err := marshalMeshConfig(newMeshConfig); err != nil {

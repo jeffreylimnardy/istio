@@ -2,7 +2,7 @@
 package v1alpha2
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -36,6 +36,8 @@ type Components struct {
 	Cni *CniComponent `json:"cni,omitempty"`
 	// Proxy defines component configuration for Istio proxy sidecar
 	Proxy *ProxyComponent `json:"proxy,omitempty"`
+	// +kubebuilder:validation:Optional
+	EgressGateway *EgressGateway `json:"egressGateway,omitempty"`
 }
 
 // KubernetesResourcesConfig is a subset of https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/#KubernetesResourcesSpec
@@ -64,8 +66,8 @@ type CniComponent struct {
 
 // CniK8sConfig is a subset of https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/#KubernetesResourcesSpec
 type CniK8sConfig struct {
-	Affinity  *v1.Affinity `json:"affinity,omitempty"`
-	Resources *Resources   `json:"resources,omitempty"`
+	Affinity  *corev1.Affinity `json:"affinity,omitempty"`
+	Resources *Resources       `json:"resources,omitempty"`
 }
 
 // HPASpec defines configuration for HorizontalPodAutoscaler
@@ -115,4 +117,12 @@ type ResourceClaims struct {
 
 	// +kubebuilder:validation:Pattern=`^[0-9]+(((\.[0-9]+)?(E|P|T|G|M|k|Ei|Pi|Ti|Gi|Mi|Ki|m)?)|(e[0-9]+))$`
 	Memory *string `json:"memory,omitempty"`
+}
+
+// EgressGateway defines configuration for Istio egressGateway
+type EgressGateway struct {
+	// +kubebuilder:validation:Optional
+	K8s *KubernetesResourcesConfig `json:"k8s"`
+	// +kubebuilder:validation:Optional
+	Enabled *bool `json:"enabled,omitempty"`
 }
